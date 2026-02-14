@@ -1,5 +1,5 @@
 [Defines]
-  INF_VERSION                = 0x00010005
+  INF_VERSION                = 0x00010006
   BASE_NAME                  = StylishBootloader
   FILE_GUID                  = 12345678-1234-1234-1234-123456789ABC
   MODULE_TYPE                = UEFI_APPLICATION
@@ -8,11 +8,8 @@
 
 [Sources]
   src/Core/Entry.c
-  # On ajoutera les autres fichiers plus tard :
-  # src/Core/Platform.c
-  # src/Core/Memory.c
-  # src/Graphics/Renderer.c
-  # etc.
+  src/Graphics/Framebuffer.c
+  src/Core/Platform.c
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -23,6 +20,7 @@
   UefiLib
   BaseMemoryLib
   DebugLib
+  MemoryAllocationLib
 
 [Protocols]
   gEfiGraphicsOutputProtocolGuid
