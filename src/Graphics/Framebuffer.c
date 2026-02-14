@@ -89,3 +89,4 @@ VOID CleanupFramebuffer(VOID) {
         gBackBuffer = NULL;
     }
 }
+
