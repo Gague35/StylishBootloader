@@ -12,6 +12,7 @@
   src/Graphics/Framebuffer.c
   src/UI/Menu.c
   src/UI/Input.c
+  src/Graphics/Animations.c
 
 [Packages]
   MdePkg/MdePkg.dec

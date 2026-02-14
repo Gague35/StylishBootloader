@@ -8,6 +8,7 @@ VOID MenuMoveUp(VOID);
 VOID MenuMoveDown(VOID);
 UINT32 MenuGetSelected(VOID);
 VOID RenderMenu(UINT32 ScreenWidth, UINT32 ScreenHeight);
+VOID MenuUpdate(VOID);
 
 // Input
 typedef enum {

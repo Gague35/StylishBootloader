@@ -100,6 +100,12 @@ EFI_STATUS EFIAPI UefiMain(
             default:
                 break;
         }
+
+        MenuUpdate();
+        
+        ClearBackBuffer(RGB(20, 20, 30));
+        RenderMenu(gGraphics.Width, gGraphics.Height);
+        SwapBuffers();
         
         // Dessiner le menu
         ClearBackBuffer(RGB(20, 20, 30));  // Fond bleu très foncé

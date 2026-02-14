@@ -43,4 +43,9 @@ UINT64 GetDeltaTimeMicroseconds(VOID);
 // Convertit RGB en BGR (format UEFI)
 #define RGB(r, g, b) (0xFF000000 | ((r) << 16) | ((g) << 8) | (b))
 
+// Animations
+UINT32 LerpUINT32(UINT32 Start, UINT32 End, UINT32 T, UINT32 MaxT);
+UINT32 EaseInOutUINT32(UINT32 Start, UINT32 End, UINT32 T, UINT32 MaxT);
+UINT32 LerpColor(UINT32 ColorStart, UINT32 ColorEnd, UINT32 T, UINT32 MaxT);
+
 #endif
