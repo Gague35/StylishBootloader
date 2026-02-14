@@ -1,46 +1,21 @@
 #include <Uefi.h>
 #include <Library/UefiLib.h>
-#include <Library/UefiRuntimeServicesTableLib.h>
+#include <Library/UefiBootServicesTableLib.h>
 
 // ============================================================================
-// TIMER HAUTE PRÉCISION
+// TIMER
 // ============================================================================
 
-static UINT64 gLastTime = 0;
+static UINT64 gLastTicks = 0;
 
-/**
- * Récupère le temps actuel en microsecondes
- */
-UINT64 GetCurrentTimeMicroseconds(VOID) {
-    EFI_TIME Time;
-    EFI_STATUS Status;
-    
-    Status = gRT->GetTime(&Time, NULL);
-    if (EFI_ERROR(Status)) {
-        return 0;
-    }
-    
-    // Convertir en microsecondes
-    UINT64 Microseconds = (UINT64)Time.Second * 1000000ULL;
-    Microseconds += (UINT64)Time.Nanosecond / 1000ULL;
-    
-    return Microseconds;
-}
-
-/**
- * Initialise le timer
- */
 VOID InitializeTimer(VOID) {
-    gLastTime = GetCurrentTimeMicroseconds();
+    gLastTicks = 0;
 }
 
-/**
- * Retourne le delta time en microsecondes
- */
 UINT64 GetDeltaTimeMicroseconds(VOID) {
-    UINT64 CurrentTime = GetCurrentTimeMicroseconds();
-    UINT64 DeltaMicro = CurrentTime - gLastTime;
-    gLastTime = CurrentTime;
-    
-    return DeltaMicro;
+    static UINT64 Counter = 0;
+    Counter++;
+
+    // Retourner un delta fixe de 16ms (environ 60 FPS)
+    return 16000;
 }
