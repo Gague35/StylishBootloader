@@ -1,3 +1,5 @@
+**This Readme file will be updated several times during this project; therefore, it may no longer be up to date when you read it.t**
+
 # 🚀 StylishBootloader
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -317,4 +319,5 @@ Have a question? [Start a discussion](https://github.com/Gague35/StylishBootload
 
 <p align="center">
   <sub>UEFI · C · Graphics · Bootloader</sub>
+
 </p>
