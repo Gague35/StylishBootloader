@@ -2,18 +2,48 @@
 #include <Library/UefiLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Protocol/GraphicsOutput.h>
+#include "../Graphics/Graphics.h"
+
+// Helper: convert RGB components to framebuffer pixel according to GOP PixelFormat
+UINT32 PixelFromRGB(UINT8 r, UINT8 g, UINT8 b) {
+    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info = gGraphics.Gop->Mode->Info;
+    // Afficher le PixelFormat pour diagnostic
+    switch (Info->PixelFormat) {
+        case PixelRedGreenBlueReserved8BitPerColor:
+            Print(L"[GOP] PixelFormat: RGB (Red-Green-Blue)\n");
+            break;
+        case PixelBlueGreenRedReserved8BitPerColor:
+            Print(L"[GOP] PixelFormat: BGR (Blue-Green-Red)\n");
+            break;
+        case PixelBitMask:
+            Print(L"[GOP] PixelFormat: BitMask\n");
+            break;
+        case PixelBltOnly:
+            Print(L"[GOP] PixelFormat: BltOnly\n");
+            break;
+        default:
+            Print(L"[GOP] PixelFormat: %d\n", Info->PixelFormat);
+            break;
+    }
+
+    switch (Info->PixelFormat) {
+        case PixelRedGreenBlueReserved8BitPerColor:
+            return (0xFF000000u | ((UINT32)r) | ((UINT32)g << 8) | ((UINT32)b << 16));
+        case PixelBlueGreenRedReserved8BitPerColor:
+            return (0xFF000000u | ((UINT32)b) | ((UINT32)g << 8) | ((UINT32)r << 16));
+        case PixelBitMask:
+        case PixelBltOnly:
+        default:
+            // Fallback to BGR ordering (most common for UEFI)
+            return (0xFF000000u | ((UINT32)b) | ((UINT32)g << 8) | ((UINT32)r << 16));
+    }
+}
 
 // ============================================================================
 // STRUCTURES GLOBALES
 // ============================================================================
 
-typedef struct {
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
-    UINT32                       Width;
-    UINT32                       Height;
-    UINT32                       *Framebuffer;
-} GRAPHICS_CONTEXT;
-
+// `GRAPHICS_CONTEXT` and `gGraphics` are declared in Graphics.h
 GRAPHICS_CONTEXT gGraphics = {0};
 
 // ============================================================================
@@ -100,16 +130,16 @@ EFI_STATUS EFIAPI UefiMain(
         // Effacer l'ecran (noir)
         ClearScreenDirect(0xFF000000);
 
-        // Dessiner le rectangle
+        // Dessiner le rectangle en convertissant dynamiquement selon le PixelFormat
         UINT32 Color;
         if (TestX < 200) {
-            Color = 0xFF0000FF;  // Rouge (B=FF, G=00, R=00)
+            Color = PixelFromRGB(255, 0, 0);  // Rouge
             Print(L"Phase 1 : Rouge\r");
         } else if (TestX < 400) {
-            Color = 0xFF00FF00;  // Vert (B=00, G=FF, R=00)
+            Color = PixelFromRGB(0, 255, 0);  // Vert
             Print(L"Phase 2 : Vert \r");
         } else {
-            Color = 0xFFFF0000;  // Bleu (B=00, G=00, R=FF)
+            Color = PixelFromRGB(0, 0, 255);  // Bleu
             Print(L"Phase 3 : Bleu \r");
         }
 
