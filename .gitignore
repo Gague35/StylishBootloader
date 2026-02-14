@@ -1,0 +1,32 @@
+# EDK2 Build outputs
+Build/
+Conf/.cache/
+*.efi
+
+# Compiled objects
+*.o
+*.obj
+*.lib
+*.a
+
+# Debug files
+*.pdb
+*.map
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+image/
+test-disk.img
+
+# Logs
+*.log
