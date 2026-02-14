@@ -8,8 +8,10 @@
 
 [Sources]
   src/Core/Entry.c
-  src/Graphics/Framebuffer.c
   src/Core/Platform.c
+  src/Graphics/Framebuffer.c
+  src/UI/Menu.c
+  src/UI/Input.c
 
 [Packages]
   MdePkg/MdePkg.dec

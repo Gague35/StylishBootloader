@@ -3,13 +3,13 @@
 #include <Library/UefiBootServicesTableLib.h>
 #include <Protocol/GraphicsOutput.h>
 #include "../Graphics/Graphics.h"
+#include "../UI/UI.h"
 
 // ============================================================================
-// STRUCTURES GLOBALES
+// VARIABLES GLOBALES
 // ============================================================================
 
-// `GRAPHICS_CONTEXT` type and `extern gGraphics` are declared in Graphics.h
-// Define the single global instance here:
+// Variable globale (définie ici, déclarée dans Graphics.h)
 GRAPHICS_CONTEXT gGraphics = {0};
 
 // ============================================================================
@@ -18,25 +18,25 @@ GRAPHICS_CONTEXT gGraphics = {0};
 
 EFI_STATUS InitializeGraphics(VOID) {
     EFI_STATUS Status;
-
+    
     Status = gBS->LocateProtocol(
         &gEfiGraphicsOutputProtocolGuid,
         NULL,
         (VOID **)&gGraphics.Gop
     );
-
+    
     if (EFI_ERROR(Status)) {
         Print(L"[ERREUR] GOP non disponible : %r\n", Status);
         return Status;
     }
-
+    
     EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info = gGraphics.Gop->Mode->Info;
     gGraphics.Width  = Info->HorizontalResolution;
     gGraphics.Height = Info->VerticalResolution;
     gGraphics.Framebuffer = (UINT32 *)gGraphics.Gop->Mode->FrameBufferBase;
-
+    
     Print(L"[GOP] Resolution : %dx%d\n", gGraphics.Width, gGraphics.Height);
-
+    
     return EFI_SUCCESS;
 }
 
@@ -49,81 +49,70 @@ EFI_STATUS EFIAPI UefiMain(
     IN EFI_SYSTEM_TABLE  *SystemTable
 ) {
     EFI_STATUS Status;
-
+    
     gST->ConOut->ClearScreen(gST->ConOut);
-    Print(L"=== Stylish Bootloader v0.3 - Double Buffering ===\n\n");
-
+    Print(L"=== Stylish Bootloader v0.4 - Interactive Menu ===\n\n");
+    
     Status = InitializeGraphics();
     if (EFI_ERROR(Status)) {
         Print(L"Echec GOP\n");
         return Status;
     }
-
+    
     Status = InitializeFramebuffer(gGraphics.Width, gGraphics.Height, gGraphics.Framebuffer);
     if (EFI_ERROR(Status)) {
         Print(L"Echec framebuffer\n");
         return Status;
     }
-
-    InitializeTimer();
-
-    Print(L"Animation : Rectangle qui rebondit (DOUBLE BUFFERING)\n");
-    Print(L"Appuyez sur une touche pour arreter...\n\n");
-
+    
+    Print(L"Menu interactif : Utilisez les fleches haut/bas\n");
+    Print(L"Appuyez sur Entree pour selectionner\n\n");
+    
     // ========================================================================
-    // ANIMATION AVEC DOUBLE BUFFERING
+    // BOUCLE DU MENU
     // ========================================================================
-
-    INT32 PositionX = 0;
-    INT32 VelocityX = 3;  // Pixels par frame (simple)
-    UINT32 RectWidth = 100;
-    UINT32 RectHeight = 100;
-
-    EFI_INPUT_KEY Key;
-    UINT32 FrameCount = 0;
-
-    while (TRUE) {
-        // Verifier touche
-        Status = gST->ConIn->ReadKeyStroke(gST->ConIn, &Key);
-        if (Status == EFI_SUCCESS) {
-            break;
+    
+    BOOLEAN Running = TRUE;
+    
+    while (Running) {
+        // Gérer l'input
+        INPUT_ACTION Action = PollInput();
+        
+        switch (Action) {
+            case INPUT_UP:
+                MenuMoveUp();
+                break;
+            
+            case INPUT_DOWN:
+                MenuMoveDown();
+                break;
+            
+            case INPUT_SELECT:
+                Print(L"Option selectionnee : %u\n", MenuGetSelected());
+                Running = FALSE;
+                break;
+            
+            case INPUT_ESCAPE:
+                Print(L"Annule\n");
+                Running = FALSE;
+                break;
+            
+            default:
+                break;
         }
-
-        // Mettre a jour position
-        PositionX += VelocityX;
-
-        // Rebondir
-        if (PositionX > (INT32)(gGraphics.Width - RectWidth)) {
-            PositionX = (INT32)(gGraphics.Width - RectWidth);
-            VelocityX = -VelocityX;
-        }
-        if (PositionX < 0) {
-            PositionX = 0;
-            VelocityX = -VelocityX;
-        }
-
-        // Dessiner dans le BACK BUFFER
-        ClearBackBuffer(RGB(0, 0, 0));
-
-        UINT32 X = (UINT32)PositionX;
-        UINT32 Y = (gGraphics.Height - RectHeight) / 2;
-        DrawFilledRectToBuffer(X, Y, RectWidth, RectHeight, RGB(255, 0, 0));
-
-        // SWAP : Copier vers l'ecran en une fois
+        
+        // Dessiner le menu
+        ClearBackBuffer(RGB(20, 20, 30));  // Fond bleu très foncé
+        RenderMenu(gGraphics.Width, gGraphics.Height);
         SwapBuffers();
-
-        // Delai pour ~60 FPS
-        gBS->Stall(16000);
-
-        FrameCount++;
-        if (FrameCount % 60 == 0) {
-            Print(L"Frames: %u, PosX: %d\r", FrameCount, PositionX);
-        }
+        
+        // Petit délai pour éviter de spammer le CPU
+        gBS->Stall(16000);  // 16ms
     }
-
+    
     CleanupFramebuffer();
-
-    Print(L"\n\nAnimation terminee ! Total frames: %u\n", FrameCount);
-
+    
+    Print(L"\nMenu termine !\n");
+    
     return EFI_SUCCESS;
 }
