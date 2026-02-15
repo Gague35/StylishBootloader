@@ -25,33 +25,76 @@ CAROUSEL_STATE gCarousel = {0, 0, 0, FALSE, 0};
 // ============================================================================
 
 VOID MenuMoveLeft(VOID) {
-    if (gCarousel.IsAnimating) return;  // Ignorer si déjà en animation
-    
-    // Passer à l'option précédente (circulaire)
-    if (gCarousel.SelectedIndex == 0) {
-        gCarousel.SelectedIndex = MAX_ITEMS - 1;  // 0 → 3
+    // Si une animation est en cours, on ajuste depuis la position actuelle
+    if (gCarousel.IsAnimating) {
+        // Calculer la "distance restante" dans l'animation actuelle
+        // L'offset actuel indique où on est vraiment
+        // On va partir de là pour la nouvelle animation
+        
+        // Changer de cible
+        if (gCarousel.SelectedIndex == 0) {
+            gCarousel.SelectedIndex = MAX_ITEMS - 1;
+        } else {
+            gCarousel.SelectedIndex--;
+        }
+        
+        // L'offset actuel devient le point de départ
+        // On veut aller vers la droite, donc offset positif
+        // Mais on part de l'offset actuel (qui peut être négatif)
+        gCarousel.AnimationOffset = gCarousel.AnimationOffset + SPACING;
+        
+        // Si l'offset dépasse, on le limite
+        if (gCarousel.AnimationOffset > SPACING) {
+            gCarousel.AnimationOffset = SPACING;
+        }
+        
+        gCarousel.AnimationDirection = -1;
+        gCarousel.AnimationProgress = 0;
+        // IsAnimating reste TRUE
+        
     } else {
-        gCarousel.SelectedIndex--;
+        // Pas d'animation en cours, comportement normal
+        if (gCarousel.SelectedIndex == 0) {
+            gCarousel.SelectedIndex = MAX_ITEMS - 1;
+        } else {
+            gCarousel.SelectedIndex--;
+        }
+        
+        gCarousel.AnimationOffset = SPACING;
+        gCarousel.AnimationDirection = -1;
+        gCarousel.AnimationProgress = 0;
+        gCarousel.IsAnimating = TRUE;
     }
-    
-    // Lancer animation vers la DROITE (cases glissent à droite)
-    gCarousel.AnimationOffset = SPACING;  // Commence décalé à gauche
-    gCarousel.AnimationDirection = -1;
-    gCarousel.AnimationProgress = 0;
-    gCarousel.IsAnimating = TRUE;
 }
 
 VOID MenuMoveRight(VOID) {
-    if (gCarousel.IsAnimating) return;
-    
-    // Passer à l'option suivante (circulaire)
-    gCarousel.SelectedIndex = (gCarousel.SelectedIndex + 1) % MAX_ITEMS;
-    
-    // Lancer animation vers la GAUCHE
-    gCarousel.AnimationOffset = -SPACING;  // Commence décalé à droite
-    gCarousel.AnimationDirection = 1;
-    gCarousel.AnimationProgress = 0;
-    gCarousel.IsAnimating = TRUE;
+    // Si une animation est en cours, on ajuste depuis la position actuelle
+    if (gCarousel.IsAnimating) {
+        // Changer de cible
+        gCarousel.SelectedIndex = (gCarousel.SelectedIndex + 1) % MAX_ITEMS;
+        
+        // L'offset actuel devient le point de départ
+        // On veut aller vers la gauche, donc offset négatif
+        gCarousel.AnimationOffset = gCarousel.AnimationOffset - SPACING;
+        
+        // Si l'offset dépasse, on le limite
+        if (gCarousel.AnimationOffset < -SPACING) {
+            gCarousel.AnimationOffset = -SPACING;
+        }
+        
+        gCarousel.AnimationDirection = 1;
+        gCarousel.AnimationProgress = 0;
+        // IsAnimating reste TRUE
+        
+    } else {
+        // Pas d'animation en cours, comportement normal
+        gCarousel.SelectedIndex = (gCarousel.SelectedIndex + 1) % MAX_ITEMS;
+        
+        gCarousel.AnimationOffset = -SPACING;
+        gCarousel.AnimationDirection = 1;
+        gCarousel.AnimationProgress = 0;
+        gCarousel.IsAnimating = TRUE;
+    }
 }
 
 UINT32 MenuGetSelected(VOID) {
