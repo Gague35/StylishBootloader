@@ -7,32 +7,32 @@
 // ============================================================================
 
 VOID DrawGlow(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, UINT32 Color, UINT32 Intensity) {
-    // Extraire RGB de la couleur
     UINT32 R = (Color >> 16) & 0xFF;
     UINT32 G = (Color >> 8)  & 0xFF;
     UINT32 B = (Color >> 0)  & 0xFF;
     
-    // Dessiner 3 couches de glow
-    for (UINT32 Layer = 0; Layer < 3; Layer++) {
-        UINT32 Expansion = (Layer + 1) * 8;  // Chaque couche est plus grande
-        UINT32 Opacity = (Intensity * (3 - Layer)) / 3;  // Opacité décroissante
+    // Dessiner 3 couches de glow (du plus grand au plus petit pour l'ordre)
+    for (UINT32 Layer = 3; Layer > 0; Layer--) {
+        UINT32 Expansion = Layer * 12;  // Plus d'expansion (12 au lieu de 8)
+        UINT32 Opacity = (Intensity * Layer) / 3;  // Opacité croissante
         
-        // Calculer la couleur avec opacité
         UINT32 GlowR = (R * Opacity) / 255;
         UINT32 GlowG = (G * Opacity) / 255;
         UINT32 GlowB = (B * Opacity) / 255;
         
         UINT32 GlowColor = 0xFF000000 | (GlowR << 16) | (GlowG << 8) | GlowB;
         
-        // Dessiner le rectangle étendu
-        if (X >= Expansion && Y >= Expansion) {
-            DrawFilledRectToBuffer(
-                X - Expansion,
-                Y - Expansion,
-                Width + (Expansion * 2),
-                Height + (Expansion * 2),
-                GlowColor
-            );
+        // Calculer la taille et position du glow (X,Y = CENTRE)
+        UINT32 GlowWidth = Width + (Expansion * 2);
+        UINT32 GlowHeight = Height + (Expansion * 2);
+        
+        // Convertir centre en coin haut-gauche
+        INT32 GlowX = X - (GlowWidth / 2);
+        INT32 GlowY = Y - (GlowHeight / 2);
+        
+        // Vérifier les bornes
+        if (GlowX >= 0 && GlowY >= 0) {
+            DrawFilledRectToBuffer(GlowX, GlowY, GlowWidth, GlowHeight, GlowColor);
         }
     }
 }

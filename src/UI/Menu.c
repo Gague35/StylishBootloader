@@ -8,16 +8,17 @@
 
 #define MAX_ITEMS 4
 #define SPACING 280      // Distance entre chaque case
-#define ANIM_DURATION 30 // 30 frames = 0.5 sec à 60 FPS
+#define ANIM_DURATION 30 // 20 frames = 0.3 sec à 60 FPS
 
 typedef struct {
     UINT32  SelectedIndex;      // Index sélectionné (0-3)
     INT32   AnimationOffset;    // Offset d'animation (-SPACING à +SPACING)
     UINT32  AnimationProgress;  // Compteur (0 à ANIM_DURATION)
     BOOLEAN IsAnimating;        // En cours d'animation ?
+    INT32 AnimationDirection;
 } CAROUSEL_STATE;
 
-CAROUSEL_STATE gCarousel = {0, 0, 0, FALSE};
+CAROUSEL_STATE gCarousel = {0, 0, 0, FALSE, 0};
 
 // ============================================================================
 // NAVIGATION
@@ -34,7 +35,8 @@ VOID MenuMoveLeft(VOID) {
     }
     
     // Lancer animation vers la DROITE (cases glissent à droite)
-    gCarousel.AnimationOffset = -SPACING;  // Commence décalé à gauche
+    gCarousel.AnimationOffset = SPACING;  // Commence décalé à gauche
+    gCarousel.AnimationDirection = -1;
     gCarousel.AnimationProgress = 0;
     gCarousel.IsAnimating = TRUE;
 }
@@ -46,7 +48,8 @@ VOID MenuMoveRight(VOID) {
     gCarousel.SelectedIndex = (gCarousel.SelectedIndex + 1) % MAX_ITEMS;
     
     // Lancer animation vers la GAUCHE
-    gCarousel.AnimationOffset = SPACING;  // Commence décalé à droite
+    gCarousel.AnimationOffset = -SPACING;  // Commence décalé à droite
+    gCarousel.AnimationDirection = 1;
     gCarousel.AnimationProgress = 0;
     gCarousel.IsAnimating = TRUE;
 }
@@ -64,15 +67,25 @@ VOID MenuUpdate(VOID) {
     
     gCarousel.AnimationProgress++;
     
-    // Interpoler l'offset vers 0
-    gCarousel.AnimationOffset = LerpUINT32(
-        (gCarousel.AnimationOffset < 0) ? -SPACING : SPACING,
-        0,
-        gCarousel.AnimationProgress,
-        ANIM_DURATION
-    );
+    // Interpoler selon la direction mémorisée
+    if (gCarousel.AnimationDirection > 0) {
+        // Animation vers la droite (de +SPACING vers 0)
+        gCarousel.AnimationOffset = EaseInOutUINT32(
+            SPACING,
+            0,
+            gCarousel.AnimationProgress,
+            ANIM_DURATION
+        );
+    } else {
+        // Animation vers la gauche (de -SPACING vers 0)
+        gCarousel.AnimationOffset = -EaseInOutUINT32(
+            SPACING,
+            0,
+            gCarousel.AnimationProgress,
+            ANIM_DURATION
+        );
+    }
     
-    // Fin d'animation
     if (gCarousel.AnimationProgress >= ANIM_DURATION) {
         gCarousel.AnimationOffset = 0;
         gCarousel.IsAnimating = FALSE;
@@ -111,8 +124,8 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
             DrawGlow(FinalX, CentreY, 
                      (BaseWidth * Scale) / 100, 
                      (BaseHeight * Scale) / 100, 
-                     RGB(200, 50, 50), 
-                     150);  // Augmenté l'intensité
+                     RGB(230, 50, 50), 
+                     255);  // Augmenté l'intensité
         }
     }
     

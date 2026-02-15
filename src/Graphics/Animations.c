@@ -20,7 +20,38 @@ UINT32 LerpUINT32(UINT32 Start, UINT32 End, UINT32 T, UINT32 MaxT) {
 }
 
 UINT32 EaseInOutUINT32(UINT32 Start, UINT32 End, UINT32 T, UINT32 MaxT) {
-    return LerpUINT32(Start, End, T, MaxT);
+    if (T >= MaxT) {
+        return End;
+    }
+    
+    // Normaliser T entre 0 et 1000
+    UINT32 Progress = (T * 1000) / MaxT;
+    
+    UINT32 EasedProgress;
+    
+    // Ease-in-out cubique CORRIGÉ
+    if (Progress < 500) {
+        // Première moitié : 4t³
+        // t varie de 0 à 0.5, résultat de 0 à 0.5
+        UINT64 p = Progress;  // Utiliser UINT64 pour éviter overflow
+        UINT64 p3 = p * p * p;
+        EasedProgress = (UINT32)((4 * p3) / (1000 * 1000));  // ← CORRECTION ICI
+    } else {
+        // Deuxième moitié : 1 - 4(1-t)³
+        UINT32 x = 1000 - Progress;  // Inverser
+        UINT64 x3 = (UINT64)x * x * x;
+        UINT32 cubic = (UINT32)((4 * x3) / (1000 * 1000));  // ← CORRECTION ICI
+        EasedProgress = 1000 - cubic;
+    }
+    
+    // Appliquer l'easing
+    if (End > Start) {
+        UINT32 Diff = End - Start;
+        return Start + (Diff * EasedProgress) / 1000;
+    } else {
+        UINT32 Diff = Start - End;
+        return Start - (Diff * EasedProgress) / 1000;
+    }
 }
 
 // ============================================================================
