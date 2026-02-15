@@ -15,7 +15,6 @@ typedef struct {
     UINT32                       *Framebuffer;
 } GRAPHICS_CONTEXT;
 
-// Variable globale (définie dans Entry.c)
 extern GRAPHICS_CONTEXT gGraphics;
 
 // ============================================================================
@@ -37,15 +36,26 @@ VOID InitializeTimer(VOID);
 UINT64 GetDeltaTimeMicroseconds(VOID);
 
 // ============================================================================
-// MACROS
+// ANIMATIONS
 // ============================================================================
 
-// Convertit RGB en BGR (format UEFI)
-#define RGB(r, g, b) (0xFF000000 | ((r) << 16) | ((g) << 8) | (b))
-
-// Animations
 UINT32 LerpUINT32(UINT32 Start, UINT32 End, UINT32 T, UINT32 MaxT);
 UINT32 EaseInOutUINT32(UINT32 Start, UINT32 End, UINT32 T, UINT32 MaxT);
 UINT32 LerpColor(UINT32 ColorStart, UINT32 ColorEnd, UINT32 T, UINT32 MaxT);
+UINT32 CalculateScale(UINT32 Distance, UINT32 MaxDist);
+UINT32 CalculateOpacity(UINT32 Distance, UINT32 MaxDist);
+
+// ============================================================================
+// RENDERER
+// ============================================================================
+
+VOID DrawGlow(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, UINT32 Color, UINT32 Intensity);
+VOID DrawRectScaled(UINT32 X, UINT32 Y, UINT32 BaseWidth, UINT32 BaseHeight, UINT32 Scale, UINT32 Color);
+
+// ============================================================================
+// MACROS
+// ============================================================================
+
+#define RGB(r, g, b) (0xFF000000 | ((r) << 16) | ((g) << 8) | (b))
 
 #endif

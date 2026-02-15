@@ -46,3 +46,27 @@ UINT32 LerpColor(UINT32 ColorStart, UINT32 ColorEnd, UINT32 T, UINT32 MaxT) {
     
     return 0xFF000000 | (R << 16) | (G << 8) | B;
 }
+
+// ============================================================================
+// SCALE & OPACITY CALCULATION
+// ============================================================================
+
+
+UINT32 CalculateScale(UINT32 Distance, UINT32 MaxDist) {
+    if (Distance >= MaxDist) {
+        return 50;  // Minimum 50%
+    }
+    
+    // Formule : 100% - (Distance / MaxDist) * 50%
+    return 100 - ((Distance * 50) / MaxDist);
+}
+
+
+UINT32 CalculateOpacity(UINT32 Distance, UINT32 MaxDist) {
+    if (Distance >= MaxDist) {
+        return 100;  // Minimum visible
+    }
+    
+    // Formule : 255 - (Distance / MaxDist) * 155
+    return 255 - ((Distance * 155) / MaxDist);
+}

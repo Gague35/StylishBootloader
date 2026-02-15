@@ -10,9 +10,10 @@
   src/Core/Entry.c
   src/Core/Platform.c
   src/Graphics/Framebuffer.c
+  src/Graphics/Animations.c
+  src/Graphics/Renderer.c
   src/UI/Menu.c
   src/UI/Input.c
-  src/Graphics/Animations.c
 
 [Packages]
   MdePkg/MdePkg.dec

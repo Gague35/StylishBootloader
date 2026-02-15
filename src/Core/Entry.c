@@ -79,12 +79,12 @@ EFI_STATUS EFIAPI UefiMain(
         INPUT_ACTION Action = PollInput();
         
         switch (Action) {
-            case INPUT_UP:
-                MenuMoveUp();
+            case INPUT_LEFT:
+                MenuMoveLeft();
                 break;
             
-            case INPUT_DOWN:
-                MenuMoveDown();
+            case INPUT_RIGHT:
+                MenuMoveRight();
                 break;
             
             case INPUT_SELECT:
@@ -102,14 +102,10 @@ EFI_STATUS EFIAPI UefiMain(
         }
 
         MenuUpdate();
-        
-        ClearBackBuffer(RGB(20, 20, 30));
-        RenderMenu(gGraphics.Width, gGraphics.Height);
-        SwapBuffers();
-        
+
         // Dessiner le menu
         ClearBackBuffer(RGB(20, 20, 30));  // Fond bleu très foncé
-        RenderMenu(gGraphics.Width, gGraphics.Height);
+        RenderCarousel(gGraphics.Width, gGraphics.Height);
         SwapBuffers();
         
         // Petit délai pour éviter de spammer le CPU
