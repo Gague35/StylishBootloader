@@ -142,67 +142,89 @@ VOID MenuUpdate(VOID) {
 VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
     UINT32 CentreX = ScreenWidth / 2;
     UINT32 CentreY = ScreenHeight / 2;
-    
-    UINT32 BaseWidth = 200;
+
+    UINT32 BaseWidth  = 200;
     UINT32 BaseHeight = 120;
-    
+
+    // ------------------------------------------------------------------------
     // PASSE 1 : Dessiner les glows (arrière-plan)
+    // ------------------------------------------------------------------------
     for (UINT32 i = 0; i < MAX_ITEMS; i++) {
         INT32 RelativeIndex = (INT32)i - (INT32)gCarousel.SelectedIndex;
         INT32 BaseX = CentreX + (RelativeIndex * SPACING);
         INT32 FinalX = BaseX + gCarousel.AnimationOffset;
-        
-        if (FinalX < -300 || FinalX > (INT32)ScreenWidth + 300) {
-            continue;
-        }
-        
+
+        // Skip if out of screen + margin
+        if (FinalX < -300 || FinalX > (INT32)ScreenWidth + 300) continue;
+
         UINT32 Distance = (FinalX > (INT32)CentreX) ? 
                           (FinalX - CentreX) : 
                           (CentreX - FinalX);
-        
-        UINT32 Scale = CalculateScale(Distance, 500);
-        
-        // Dessiner glow seulement si au centre
-        if (Distance < 50) {
+
+        // Glow décroissant avec la distance (plus proche = plus fort)
+        UINT32 GlowScale = 100;
+        if (Distance < 300) {
+            GlowScale = 100 - ((Distance * 100) / 300); // 0..100
+        } else {
+            GlowScale = 0;
+        }
+
+        if (GlowScale > 0) {
             DrawGlow(FinalX, CentreY, 
-                     (BaseWidth * Scale) / 100, 
-                     (BaseHeight * Scale) / 100, 
+                     (BaseWidth  * GlowScale) / 100, 
+                     (BaseHeight * GlowScale) / 100, 
                      RGB(230, 50, 50), 
-                     255);  // Augmenté l'intensité
+                     (GlowScale * 150) / 100); // alpha ajusté
         }
     }
-    
+
+    // ------------------------------------------------------------------------
     // PASSE 2 : Dessiner les rectangles (premier plan)
+    // ------------------------------------------------------------------------
+    
+    // Timer pour l'animation pulse (basé sur AnimationProgress)
+    static UINT32 PulseTimer = 0;
+    PulseTimer = (PulseTimer + 1) % 120;  // Cycle de 2 secondes à 60 FPS
+    
     for (UINT32 i = 0; i < MAX_ITEMS; i++) {
         INT32 RelativeIndex = (INT32)i - (INT32)gCarousel.SelectedIndex;
         INT32 BaseX = CentreX + (RelativeIndex * SPACING);
         INT32 FinalX = BaseX + gCarousel.AnimationOffset;
-        
-        if (FinalX < -300 || FinalX > (INT32)ScreenWidth + 300) {
-            continue;
-        }
-        
+
+        if (FinalX < -300 || FinalX > (INT32)ScreenWidth + 300) continue;
+
         UINT32 Distance = (FinalX > (INT32)CentreX) ? 
                           (FinalX - CentreX) : 
                           (CentreX - FinalX);
-        
-        UINT32 Scale = CalculateScale(Distance, 500);
+
+        UINT32 Scale   = CalculateScale(Distance, 500);
         UINT32 Opacity = CalculateOpacity(Distance, 500);
-        
-        UINT32 BaseColor = (Distance < 50) ? 
-                           RGB(200, 50, 50) : 
-                           RGB(80, 80, 80);
-        
+
+        // Animation pulse pour l'item au centre
+        if (Distance < 50) {
+            // Pulse sinusoïdal : oscille entre 100% et 105%
+            // sin(x) approximé par un triangle
+            INT32 PulsePhase = PulseTimer;
+            if (PulsePhase > 60) {
+                PulsePhase = 120 - PulsePhase;
+            }
+            // PulsePhase va de 0 à 60 puis 60 à 0
+            // On veut un pulse de 0% à 5%
+            UINT32 PulseAmount = (PulsePhase * 5) / 60;  // 0 à 5
+            Scale = Scale + PulseAmount;  // Ajoute le pulse
+        }
+
+        UINT32 BaseColor = (Distance < 50) ? RGB(200, 50, 50) : RGB(80, 80, 80);
+
         UINT32 R = (BaseColor >> 16) & 0xFF;
         UINT32 G = (BaseColor >> 8)  & 0xFF;
         UINT32 B = (BaseColor >> 0)  & 0xFF;
-        
+
         R = (R * Opacity) / 255;
         G = (G * Opacity) / 255;
         B = (B * Opacity) / 255;
-        
+
         UINT32 FinalColor = 0xFF000000 | (R << 16) | (G << 8) | B;
-        
+
         DrawRectScaled(FinalX, CentreY, BaseWidth, BaseHeight, Scale, FinalColor);
     }
-}
