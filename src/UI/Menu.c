@@ -146,7 +146,7 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
     UINT32 BaseWidth  = 200;
     UINT32 BaseHeight = 120;
 
-    // Timer pour l'animation pulse du glow
+    // Timer pour l'animation pulse
     static UINT32 PulseTimer = 0;
     PulseTimer = (PulseTimer + 1) % 120;
     
@@ -157,7 +157,7 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
     UINT32 PulseAmount = (PulsePhase * 5) / 60;
 
     // ------------------------------------------------------------------------
-    // BOUCLE UNIQUE : Rectangle PUIS Glow
+    // BOUCLE : Glow PUIS Rectangle
     // ------------------------------------------------------------------------
     for (UINT32 i = 0; i < MAX_ITEMS; i++) {
         INT32 RelativeIndex = (INT32)i - (INT32)gCarousel.SelectedIndex;
@@ -173,8 +173,27 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         UINT32 Scale = CalculateScale(Distance, 500);
         UINT32 Opacity = CalculateOpacity(Distance, 500);
 
+        // Appliquer le pulse si très proche du centre
+        if (Distance < 50) {
+            Scale = Scale + PulseAmount;
+        }
+
         // ----------------------------------------------------------------
-        // 1. DESSINER LE RECTANGLE D'ABORD (sans animation)
+        // 1. DESSINER LE GLOW (seulement si TRÈS proche du centre)
+        // ----------------------------------------------------------------
+        if (Distance < 50) {  // ← CHANGÉ de < 100 à < 50
+            // Intensité maximale quand au centre
+            UINT32 GlowIntensity = 255 - ((Distance * 155) / 50);  // ← Diviseur changé aussi
+            
+            UINT32 GlowWidth = (BaseWidth * Scale) / 100;
+            UINT32 GlowHeight = (BaseHeight * Scale) / 100;
+            
+            DrawGlow(FinalX, CentreY, GlowWidth, GlowHeight, 
+                     RGB(255, 80, 80), GlowIntensity);
+        }
+
+        // ----------------------------------------------------------------
+        // 2. DESSINER LE RECTANGLE
         // ----------------------------------------------------------------
         UINT32 BaseColor = (Distance < 50) ? RGB(200, 50, 50) : RGB(80, 80, 80);
 
@@ -189,24 +208,5 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         UINT32 FinalColor = 0xFF000000 | (R << 16) | (G << 8) | B;
 
         DrawRectScaled(FinalX, CentreY, BaseWidth, BaseHeight, Scale, FinalColor);
-
-        // ----------------------------------------------------------------
-        // 2. DESSINER LE GLOW PAR-DESSUS (avec animation pulse)
-        // ----------------------------------------------------------------
-        if (Distance < 100) {
-            UINT32 GlowIntensity = 255 - ((Distance * 155) / 100);
-            
-            // Le glow pulse
-            UINT32 GlowScale = Scale;
-            if (Distance < 50) {
-                GlowScale = Scale + PulseAmount;
-            }
-            
-            UINT32 GlowWidth = (BaseWidth * GlowScale) / 100;
-            UINT32 GlowHeight = (BaseHeight * GlowScale) / 100;
-            
-            DrawGlow(FinalX, CentreY, GlowWidth, GlowHeight, 
-                     RGB(255, 70, 60), GlowIntensity);
-        }
     }
 }
