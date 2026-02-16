@@ -58,4 +58,12 @@ VOID DrawRectScaled(UINT32 X, UINT32 Y, UINT32 BaseWidth, UINT32 BaseHeight, UIN
 
 #define RGB(r, g, b) (0xFF000000 | ((r) << 16) | ((g) << 8) | (b))
 
+// Font rendering
+VOID DrawChar(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color);
+VOID DrawCharScaled(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale);
+VOID DrawString(CHAR16* str, INT32 X, INT32 Y, UINT32 Color);
+VOID DrawStringScaled(CHAR16* str, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale);
+VOID DrawStringCentered(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color);
+VOID DrawStringCenteredScaled(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color, UINT32 Scale);
+
 #endif

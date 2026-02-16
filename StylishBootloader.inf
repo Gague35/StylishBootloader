@@ -12,6 +12,7 @@
   src/Graphics/Framebuffer.c
   src/Graphics/Animations.c
   src/Graphics/Renderer.c
+  src/Graphics/Font.c
   src/UI/Menu.c
   src/UI/Input.c
 

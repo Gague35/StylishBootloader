@@ -8,7 +8,7 @@
 
 #define MAX_ITEMS 4
 #define SPACING 280      // Distance entre chaque case
-#define ANIM_DURATION 30 // 20 frames = 0.3 sec à 60 FPS
+#define ANIM_DURATION 20 
 
 typedef struct {
     UINT32  SelectedIndex;      // Index sélectionné (0-3)
@@ -193,7 +193,7 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         }
 
         // ----------------------------------------------------------------
-        // 2. DESSINER LE RECTANGLE
+        // DESSINER LE RECTANGLE
         // ----------------------------------------------------------------
         UINT32 BaseColor = (Distance < 50) ? RGB(200, 50, 50) : RGB(80, 80, 80);
 
@@ -208,5 +208,40 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         UINT32 FinalColor = 0xFF000000 | (R << 16) | (G << 8) | B;
 
         DrawRectScaled(FinalX, CentreY, BaseWidth, BaseHeight, Scale, FinalColor);
+        
+        DrawRectScaled(FinalX, CentreY, BaseWidth, BaseHeight, Scale, FinalColor);
+        
+        // ----------------------------------------------------------------
+        // DESSINER LE TEXTE (avec scale et opacity)
+        // ----------------------------------------------------------------
+        CHAR16* Label = L"";
+        switch (i) {
+            case 0: Label = L"Windows"; break;
+            case 1: Label = L"Linux";   break;
+            case 2: Label = L"BIOS"; break;
+            case 3: Label = L"Shutdown"; break;
+        }
+        
+        // Calculer scale du texte (même que le rectangle)
+        UINT32 TextScale = Scale / 50;  // Scale 100 → 2x, Scale 50 → 1x
+        if (TextScale < 1) TextScale = 1;  // Minimum 1x
+        
+        // Couleur avec opacity (comme le rectangle)
+        UINT32 BaseTextColor = (Distance < 50) ? RGB(255, 255, 255) : RGB(150, 150, 150);
+        
+        UINT32 TR = (BaseTextColor >> 16) & 0xFF;
+        UINT32 TG = (BaseTextColor >> 8)  & 0xFF;
+        UINT32 TB = (BaseTextColor >> 0)  & 0xFF;
+        
+        TR = (TR * Opacity) / 255;
+        TG = (TG * Opacity) / 255;
+        TB = (TB * Opacity) / 255;
+        
+        UINT32 TextColor = 0xFF000000 | (TR << 16) | (TG << 8) | TB;
+        
+        // Position du texte (centré sur le rectangle)
+        INT32 TextY = CentreY - (4 * TextScale); // Centré verticalement
+        
+        DrawStringCenteredScaled(Label, FinalX, TextY, TextColor, TextScale);
     }
 }
