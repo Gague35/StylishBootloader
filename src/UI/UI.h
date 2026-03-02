@@ -13,8 +13,6 @@ VOID MenuUpdate(VOID);
 // Input
 typedef enum {
     INPUT_NONE,
-    INPUT_UP,
-    INPUT_DOWN,
     INPUT_LEFT,
     INPUT_RIGHT,
     INPUT_SELECT,

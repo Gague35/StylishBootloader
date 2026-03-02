@@ -25,35 +25,28 @@ CAROUSEL_STATE gCarousel = {0, 0, 0, FALSE, 0};
 // ============================================================================
 
 VOID MenuMoveLeft(VOID) {
-    // Si une animation est en cours, on ajuste depuis la position actuelle
+    // If an animation is in progress, we adjust from the current position
     if (gCarousel.IsAnimating) {
-        // Calculer la "distance restante" dans l'animation actuelle
-        // L'offset actuel indique où on est vraiment
-        // On va partir de là pour la nouvelle animation
         
-        // Changer de cible
+        // Change target
         if (gCarousel.SelectedIndex == 0) {
             gCarousel.SelectedIndex = MAX_ITEMS - 1;
         } else {
             gCarousel.SelectedIndex--;
         }
         
-        // L'offset actuel devient le point de départ
-        // On veut aller vers la droite, donc offset positif
-        // Mais on part de l'offset actuel (qui peut être négatif)
         gCarousel.AnimationOffset = gCarousel.AnimationOffset + SPACING;
         
-        // Si l'offset dépasse, on le limite
+        // If the offset exceeds the limit, it is limited.
         if (gCarousel.AnimationOffset > SPACING) {
             gCarousel.AnimationOffset = SPACING;
         }
         
         gCarousel.AnimationDirection = -1;
         gCarousel.AnimationProgress = 0;
-        // IsAnimating reste TRUE
+        // IsAnimating stay TRUE
         
     } else {
-        // Pas d'animation en cours, comportement normal
         if (gCarousel.SelectedIndex == 0) {
             gCarousel.SelectedIndex = MAX_ITEMS - 1;
         } else {
@@ -68,26 +61,20 @@ VOID MenuMoveLeft(VOID) {
 }
 
 VOID MenuMoveRight(VOID) {
-    // Si une animation est en cours, on ajuste depuis la position actuelle
+
     if (gCarousel.IsAnimating) {
-        // Changer de cible
+
         gCarousel.SelectedIndex = (gCarousel.SelectedIndex + 1) % MAX_ITEMS;
-        
-        // L'offset actuel devient le point de départ
-        // On veut aller vers la gauche, donc offset négatif
         gCarousel.AnimationOffset = gCarousel.AnimationOffset - SPACING;
         
-        // Si l'offset dépasse, on le limite
         if (gCarousel.AnimationOffset < -SPACING) {
             gCarousel.AnimationOffset = -SPACING;
         }
         
         gCarousel.AnimationDirection = 1;
         gCarousel.AnimationProgress = 0;
-        // IsAnimating reste TRUE
         
     } else {
-        // Pas d'animation en cours, comportement normal
         gCarousel.SelectedIndex = (gCarousel.SelectedIndex + 1) % MAX_ITEMS;
         
         gCarousel.AnimationOffset = -SPACING;
@@ -110,9 +97,9 @@ VOID MenuUpdate(VOID) {
     
     gCarousel.AnimationProgress++;
     
-    // Interpoler selon la direction mémorisée
+    // Interpolate according to the stored direction
     if (gCarousel.AnimationDirection > 0) {
-        // Animation vers la droite (de +SPACING vers 0)
+        // Animation to the right (from +SPACING to 0)
         gCarousel.AnimationOffset = EaseInOutUINT32(
             SPACING,
             0,
@@ -120,7 +107,7 @@ VOID MenuUpdate(VOID) {
             ANIM_DURATION
         );
     } else {
-        // Animation vers la gauche (de -SPACING vers 0)
+        // Animation to the left (from -SPACING to 0)
         gCarousel.AnimationOffset = -EaseInOutUINT32(
             SPACING,
             0,
@@ -146,7 +133,7 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
     UINT32 BaseWidth  = 200;
     UINT32 BaseHeight = 120;
 
-    // Timer pour l'animation pulse
+    // Timer for pulse animation
     static UINT32 PulseTimer = 0;
     PulseTimer = (PulseTimer + 1) % 120;
     
@@ -157,7 +144,7 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
     UINT32 PulseAmount = (PulsePhase * 5) / 60;
 
     // ------------------------------------------------------------------------
-    // BOUCLE : Glow PUIS Rectangle
+    // LOOP : Glow THEN Rectangle
     // ------------------------------------------------------------------------
     for (UINT32 i = 0; i < MAX_ITEMS; i++) {
         INT32 RelativeIndex = (INT32)i - (INT32)gCarousel.SelectedIndex;
@@ -179,11 +166,10 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         }
 
         // ----------------------------------------------------------------
-        // 1. DESSINER LE GLOW (seulement si TRÈS proche du centre)
+        // 1. DRAW GLOW (only if VERY close to the center)
         // ----------------------------------------------------------------
-        if (Distance < 50) {  // ← CHANGÉ de < 100 à < 50
-            // Intensité maximale quand au centre
-            UINT32 GlowIntensity = 255 - ((Distance * 155) / 50);  // ← Diviseur changé aussi
+        if (Distance < 50) { 
+            UINT32 GlowIntensity = 255 - ((Distance * 155) / 50);
             
             UINT32 GlowWidth = (BaseWidth * Scale) / 100;
             UINT32 GlowHeight = (BaseHeight * Scale) / 100;
@@ -193,7 +179,7 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         }
 
         // ----------------------------------------------------------------
-        // DESSINER LE RECTANGLE
+        // DRAW RECTANGLE
         // ----------------------------------------------------------------
         UINT32 BaseColor = (Distance < 50) ? RGB(200, 50, 50) : RGB(80, 80, 80);
 
@@ -212,7 +198,7 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         DrawRectScaled(FinalX, CentreY, BaseWidth, BaseHeight, Scale, FinalColor);
         
         // ----------------------------------------------------------------
-        // DESSINER LE TEXTE (avec scale et opacity)
+        // DRAW TEXT (with scale and opacity)
         // ----------------------------------------------------------------
         CHAR16* Label = L"";
         switch (i) {
@@ -222,11 +208,11 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
             case 3: Label = L"Shutdown"; break;
         }
         
-        // Calculer scale du texte (même que le rectangle)
+        // Calculate the scale of the text (same as the rectangle)
         UINT32 TextScale = Scale / 50;  // Scale 100 → 2x, Scale 50 → 1x
         if (TextScale < 1) TextScale = 1;  // Minimum 1x
         
-        // Couleur avec opacity (comme le rectangle)
+        // Color with opacity (like the rectangle)
         UINT32 BaseTextColor = (Distance < 50) ? RGB(255, 255, 255) : RGB(150, 150, 150);
         
         UINT32 TR = (BaseTextColor >> 16) & 0xFF;
@@ -239,8 +225,8 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         
         UINT32 TextColor = 0xFF000000 | (TR << 16) | (TG << 8) | TB;
         
-        // Position du texte (centré sur le rectangle)
-        INT32 TextY = CentreY - (4 * TextScale); // Centré verticalement
+        // Text position (centered on the rectangle)
+        INT32 TextY = CentreY - (4 * TextScale); // Vertically centered
         
         DrawStringCenteredScaled(Label, FinalX, TextY, TextColor, TextScale);
     }

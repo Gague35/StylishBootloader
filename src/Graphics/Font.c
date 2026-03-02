@@ -5,11 +5,9 @@
 // BITMAP FONT 8x8
 // ============================================================================
 
-// Font 8x8 - Chaque caractère = 8 lignes de 8 pixels
-// Bit 1 = pixel blanc, Bit 0 = transparent
 static const UINT8 font8x8_basic[128][8] = {
-    [0]   = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // NUL
-    [' '] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, // Espace
+    [0]   = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+    [' '] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     ['0'] = {0x3C, 0x66, 0x6E, 0x76, 0x66, 0x66, 0x3C, 0x00},
     ['1'] = {0x18, 0x38, 0x18, 0x18, 0x18, 0x18, 0x7E, 0x00},
     ['2'] = {0x3C, 0x66, 0x06, 0x0C, 0x18, 0x30, 0x7E, 0x00},
@@ -75,7 +73,7 @@ static const UINT8 font8x8_basic[128][8] = {
 };
 
 // ============================================================================
-// FONCTIONS DE RENDU
+// RENDERING FUNCTIONS
 // ============================================================================
 
 VOID DrawChar(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color) {
@@ -83,14 +81,13 @@ VOID DrawChar(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color) {
     
     if (c >= 128) return;
     
-    // Dessiner chaque ligne du caractère
+    // Draw each line of the character
     for (UINT32 row = 0; row < 8; row++) {
         UINT8 bitmap = font8x8_basic[c][row];
         
-        // Dessiner chaque pixel de la ligne
+        // Draw each pixel of the line
         for (UINT32 col = 0; col < 8; col++) {
-            // CORRECTION : Lire de gauche à droite (bit 7 = pixel 0)
-            if (bitmap & (1 << (7 - col))) {  // ← CHANGÉ ICI (7 - col au lieu de col)
+            if (bitmap & (1 << (7 - col))) { 
                 DrawPixelToBuffer(X + col, Y + row, Color);
             }
         }
@@ -100,25 +97,25 @@ VOID DrawChar(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color) {
 VOID DrawString(CHAR16* str, INT32 X, INT32 Y, UINT32 Color) {
     while (*str != L'\0') {
         DrawChar(*str, X, Y, Color);
-        X += 9; // 8 pixels + 1 espace
+        X += 9; // 8 pixels + 1 space
         str++;
     }
 }
 
-// NOUVELLE FONCTION : DrawChar avec scale
+//DrawChar with scale
 VOID DrawCharScaled(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale) {
     UINT8 c = (UINT8)ch;
     
     if (c >= 128) return;
     
-    // Dessiner chaque ligne du caractère
+    // Draw each line of the character
     for (UINT32 row = 0; row < 8; row++) {
         UINT8 bitmap = font8x8_basic[c][row];
         
-        // Dessiner chaque pixel de la ligne
+        // Draw each pixel of the line
         for (UINT32 col = 0; col < 8; col++) {
             if (bitmap & (1 << (7 - col))) {
-                // Dessiner un carré Scale×Scale au lieu d'un pixel
+                // Draw a Scale×Scale square instead of a pixel
                 for (UINT32 sy = 0; sy < Scale; sy++) {
                     for (UINT32 sx = 0; sx < Scale; sx++) {
                         DrawPixelToBuffer(X + (col * Scale) + sx, 
@@ -134,7 +131,7 @@ VOID DrawCharScaled(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale) {
 VOID DrawStringScaled(CHAR16* str, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale) {
     while (*str != L'\0') {
         DrawCharScaled(*str, X, Y, Color, Scale);
-        X += (8 * Scale) + Scale; // (8 pixels + 1 espace) × Scale
+        X += (8 * Scale) + Scale;
         str++;
     }
 }
@@ -147,7 +144,7 @@ VOID DrawStringCentered(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color) {
         p++;
     }
     
-    // Utiliser scale 2x pour rendre le texte plus gros
+    //Use scale 2x to make the text larger
     UINT32 Scale = 2;
     INT32 Width = len * (8 * Scale + Scale) - Scale;
     INT32 StartX = CenterX - (Width / 2);

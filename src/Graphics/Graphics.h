@@ -5,7 +5,7 @@
 #include <Protocol/GraphicsOutput.h>
 
 // ============================================================================
-// STRUCTURE GLOBALE GOP
+// OVERALL GOP STRUCTURE
 // ============================================================================
 
 typedef struct {

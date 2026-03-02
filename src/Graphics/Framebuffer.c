@@ -4,7 +4,7 @@
 #include <Library/BaseMemoryLib.h>
 
 // ============================================================================
-// VARIABLES GLOBALES
+// GLOBAL VARIABLES
 // ============================================================================
 
 UINT32 *gBackBuffer = NULL;
@@ -14,7 +14,7 @@ UINT32 gBufferHeight = 0;
 UINTN  gBufferSize = 0;
 
 // ============================================================================
-// INITIALISATION
+// INITIATION
 // ============================================================================
 
 EFI_STATUS InitializeFramebuffer(UINT32 Width, UINT32 Height, UINT32 *FrontBuffer) {
@@ -80,7 +80,7 @@ VOID SwapBuffers(VOID) {
 }
 
 // ============================================================================
-// NETTOYAGE
+// CLEANUP
 // ============================================================================
 
 VOID CleanupFramebuffer(VOID) {

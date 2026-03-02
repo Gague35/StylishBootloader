@@ -1,19 +1,21 @@
 #include <Uefi.h>
 #include <Library/UefiLib.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Library/MemoryAllocationLib.h>
+#include <Library/BaseMemoryLib.h> 
 #include <Protocol/GraphicsOutput.h>
 #include "../Graphics/Graphics.h"
 #include "../UI/UI.h"
+#include "Platform.h"
 
 // ============================================================================
-// VARIABLES GLOBALES
+// GLOBAL VARIABLES
 // ============================================================================
 
-// Variable globale (définie ici, déclarée dans Graphics.h)
 GRAPHICS_CONTEXT gGraphics = {0};
 
 // ============================================================================
-// INITIALISATION GOP
+// GOP INITIATION
 // ============================================================================
 
 EFI_STATUS InitializeGraphics(VOID) {
@@ -41,7 +43,7 @@ EFI_STATUS InitializeGraphics(VOID) {
 }
 
 // ============================================================================
-// POINT D'ENTREE
+// ENTRY POINT
 // ============================================================================
 
 EFI_STATUS EFIAPI UefiMain(
@@ -65,17 +67,17 @@ EFI_STATUS EFIAPI UefiMain(
         return Status;
     }
     
-    Print(L"Menu interactif : Utilisez les fleches haut/bas\n");
-    Print(L"Appuyez sur Entree pour selectionner\n\n");
-    
+
+    Print(L"Use left/right arrows to naviagte\n");
+    Print(L"Press enter to select\n\n");
+
     // ========================================================================
-    // BOUCLE DU MENU
+    // MENU LOOP
     // ========================================================================
     
     BOOLEAN Running = TRUE;
-    
+
     while (Running) {
-        // Gérer l'input
         INPUT_ACTION Action = PollInput();
         
         switch (Action) {
@@ -103,14 +105,22 @@ EFI_STATUS EFIAPI UefiMain(
 
         MenuUpdate();
 
-        // Dessiner le menu
-        ClearBackBuffer(RGB(20, 20, 30));  // Fond bleu très foncé
+        // ----------------------------------------------------------------
+        // SIMPLE RENDER
+        // ----------------------------------------------------------------
+        
+        // Plain background (ultra-fast)
+        ClearBackBuffer(RGB(15, 15, 20));  // Dark bluish gray
+        
+        // Draw carousel
         RenderCarousel(gGraphics.Width, gGraphics.Height);
+        
+        // Swap buffers
         SwapBuffers();
         
-        // Petit délai pour éviter de spammer le CPU
-        gBS->Stall(16000);  // 16ms
-    }
+        // 60 FPS
+        gBS->Stall(16000);
+    } 
     
     CleanupFramebuffer();
     

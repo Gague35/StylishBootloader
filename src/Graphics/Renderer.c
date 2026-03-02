@@ -3,7 +3,7 @@
 #include "Graphics.h"
 
 // ============================================================================
-// EFFET GLOW (LUEUR)
+// GLOW EFFECT
 // ============================================================================
 
 VOID DrawGlow(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, UINT32 Color, UINT32 Intensity) {
@@ -11,27 +11,24 @@ VOID DrawGlow(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, UINT32 Color, UIN
     UINT32 G = (Color >> 8)  & 0xFF;
     UINT32 B = (Color >> 0)  & 0xFF;
     
-    // Dessiner 3 couches de glow (du plus grand au plus petit)
+    // Draw 3 layers of glow (from largest to smallest)
     for (UINT32 Layer = 3; Layer > 0; Layer--) {
         UINT32 Expansion = Layer * 12;  // 36, 24, 12
         
-        // CORRECTION : Inverser l'opacité
-        // Layer 3 (le plus grand) = opacité faible (sombre, extérieur)
-        // Layer 1 (le plus petit) = opacité forte (clair, centre)
         UINT32 Opacity = (Intensity * (4 - Layer)) / 3;
         
-        // Appliquer l'opacité aux couleurs
+        // Apply opacity to the colors
         UINT32 GlowR = (R * Opacity) / 255;
         UINT32 GlowG = (G * Opacity) / 255;
         UINT32 GlowB = (B * Opacity) / 255;
         
         UINT32 GlowColor = 0xFF000000 | (GlowR << 16) | (GlowG << 8) | GlowB;
         
-        // Calculer la taille et position (X,Y = CENTRE)
+        // Calculate the size and position (X,Y = CENTER)
         UINT32 GlowWidth = Width + (Expansion * 2);
         UINT32 GlowHeight = Height + (Expansion * 2);
         
-        // Convertir centre en coin haut-gauche
+        // Convert center to top-left corner
         INT32 GlowX = X - (GlowWidth / 2);
         INT32 GlowY = Y - (GlowHeight / 2);
         
@@ -42,15 +39,15 @@ VOID DrawGlow(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, UINT32 Color, UIN
 }
 
 // ============================================================================
-// RECTANGLE SCALÉ
+// SCALED RECTANGLE
 // ============================================================================
 
 VOID DrawRectScaled(UINT32 X, UINT32 Y, UINT32 BaseWidth, UINT32 BaseHeight, UINT32 Scale, UINT32 Color) {
-    // Calculer nouvelle taille
+    // Calculate new size
     UINT32 ScaledWidth = (BaseWidth * Scale) / 100;
     UINT32 ScaledHeight = (BaseHeight * Scale) / 100;
     
-    // Centrer le rectangle (pas coin haut-gauche)
+    // Center the rectangle (not the top left corner)
     UINT32 FinalX = X - (ScaledWidth / 2);
     UINT32 FinalY = Y - (ScaledHeight / 2);
     
