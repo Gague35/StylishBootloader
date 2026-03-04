@@ -8,6 +8,8 @@
 
 typedef enum {
     INPUT_NONE,
+    INPUT_UP,
+    INPUT_DOWN,
     INPUT_LEFT,
     INPUT_RIGHT,
     INPUT_SELECT,
@@ -32,6 +34,12 @@ INPUT_ACTION PollInput(VOID) {
     // Special keys (arrows)
     if (Key.ScanCode == SCAN_ESC) {
         return INPUT_ESCAPE;
+    }
+    if (Key.ScanCode == SCAN_UP) {
+        return INPUT_UP;
+    }
+    if (Key.ScanCode == SCAN_DOWN) {
+        return INPUT_DOWN;
     }
     if (Key.ScanCode == SCAN_LEFT) {
         return INPUT_LEFT;

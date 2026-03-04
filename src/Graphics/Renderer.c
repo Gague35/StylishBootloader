@@ -6,36 +6,39 @@
 // GLOW EFFECT
 // ============================================================================
 
-VOID DrawGlow(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, UINT32 Color, UINT32 Intensity) {
-    UINT32 R = (Color >> 16) & 0xFF;
-    UINT32 G = (Color >> 8)  & 0xFF;
-    UINT32 B = (Color >> 0)  & 0xFF;
+// Draw glow with custom layer count
+VOID DrawGlowLayers(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, 
+                    UINT32 Color, UINT32 Intensity, UINT32 LayerCount) {
     
-    // Draw 3 layers of glow (from largest to smallest)
-    for (UINT32 Layer = 3; Layer > 0; Layer--) {
-        UINT32 Expansion = Layer * 12;  // 36, 24, 12
+    for (UINT32 Layer = LayerCount; Layer >= 1; Layer--) {
+        // Expansion per layer
+        UINT32 Expansion = Layer * 7;
         
-        UINT32 Opacity = (Intensity * (4 - Layer)) / 3;
-        
-        // Apply opacity to the colors
-        UINT32 GlowR = (R * Opacity) / 255;
-        UINT32 GlowG = (G * Opacity) / 255;
-        UINT32 GlowB = (B * Opacity) / 255;
-        
-        UINT32 GlowColor = 0xFF000000 | (GlowR << 16) | (GlowG << 8) | GlowB;
-        
-        // Calculate the size and position (X,Y = CENTER)
-        UINT32 GlowWidth = Width + (Expansion * 2);
+        UINT32 GlowWidth  = Width  + (Expansion * 2);
         UINT32 GlowHeight = Height + (Expansion * 2);
         
-        // Convert center to top-left corner
-        INT32 GlowX = X - (GlowWidth / 2);
+        // Opacity calculation (adjusted for variable layers)
+        UINT32 Opacity = (Intensity * (LayerCount + 1 - Layer)) / LayerCount;
+        
+        // Apply opacity to color
+        UINT32 R = ((Color >> 16) & 0xFF) * Opacity / 255;
+        UINT32 G = ((Color >> 8)  & 0xFF) * Opacity / 255;
+        UINT32 B = ((Color >> 0)  & 0xFF) * Opacity / 255;
+        
+        UINT32 GlowColor = 0xFF000000 | (R << 16) | (G << 8) | B;
+        
+        // Position (centered)
+        INT32 GlowX = X - (GlowWidth  / 2);
         INT32 GlowY = Y - (GlowHeight / 2);
         
-        if (GlowX >= 0 && GlowY >= 0) {
-            DrawFilledRectToBuffer(GlowX, GlowY, GlowWidth, GlowHeight, GlowColor);
-        }
+        DrawFilledRectToBuffer(GlowX, GlowY, GlowWidth, GlowHeight, GlowColor);
     }
+}
+
+// Original 3-layer glow (for carousel)
+VOID DrawGlow(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, 
+              UINT32 Color, UINT32 Intensity) {
+    DrawGlowLayers(X, Y, Width, Height, Color, Intensity, 3);
 }
 
 // ============================================================================

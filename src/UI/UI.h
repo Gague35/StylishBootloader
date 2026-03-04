@@ -4,6 +4,8 @@
 #include <Uefi.h>
 
 // Menu
+VOID MenuMoveUp(VOID);
+VOID MenuMoveDown(VOID);
 VOID MenuMoveLeft(VOID);
 VOID MenuMoveRight(VOID);
 UINT32 MenuGetSelected(VOID);
@@ -13,6 +15,8 @@ VOID MenuUpdate(VOID);
 // Input
 typedef enum {
     INPUT_NONE,
+    INPUT_UP,
+    INPUT_DOWN,
     INPUT_LEFT,
     INPUT_RIGHT,
     INPUT_SELECT,

@@ -5,6 +5,7 @@
 // BITMAP FONT 8x8
 // ============================================================================
 
+// Font 8x8 - Each character = 8 lines of 8 pixels
 static const UINT8 font8x8_basic[128][8] = {
     [0]   = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     [' '] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
@@ -81,13 +82,11 @@ VOID DrawChar(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color) {
     
     if (c >= 128) return;
     
-    // Draw each line of the character
     for (UINT32 row = 0; row < 8; row++) {
         UINT8 bitmap = font8x8_basic[c][row];
         
-        // Draw each pixel of the line
         for (UINT32 col = 0; col < 8; col++) {
-            if (bitmap & (1 << (7 - col))) { 
+            if (bitmap & (1 << (7 - col))) {
                 DrawPixelToBuffer(X + col, Y + row, Color);
             }
         }
@@ -97,25 +96,21 @@ VOID DrawChar(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color) {
 VOID DrawString(CHAR16* str, INT32 X, INT32 Y, UINT32 Color) {
     while (*str != L'\0') {
         DrawChar(*str, X, Y, Color);
-        X += 9; // 8 pixels + 1 space
+        X += 9;
         str++;
     }
 }
 
-//DrawChar with scale
 VOID DrawCharScaled(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale) {
     UINT8 c = (UINT8)ch;
     
     if (c >= 128) return;
     
-    // Draw each line of the character
     for (UINT32 row = 0; row < 8; row++) {
         UINT8 bitmap = font8x8_basic[c][row];
         
-        // Draw each pixel of the line
         for (UINT32 col = 0; col < 8; col++) {
             if (bitmap & (1 << (7 - col))) {
-                // Draw a Scale×Scale square instead of a pixel
                 for (UINT32 sy = 0; sy < Scale; sy++) {
                     for (UINT32 sx = 0; sx < Scale; sx++) {
                         DrawPixelToBuffer(X + (col * Scale) + sx, 
@@ -144,12 +139,10 @@ VOID DrawStringCentered(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color) {
         p++;
     }
     
-    //Use scale 2x to make the text larger
-    UINT32 Scale = 2;
-    INT32 Width = len * (8 * Scale + Scale) - Scale;
+    INT32 Width = len * 9 - 1;
     INT32 StartX = CenterX - (Width / 2);
     
-    DrawStringScaled(str, StartX, Y, Color, Scale);
+    DrawString(str, StartX, Y, Color);
 }
 
 VOID DrawStringCenteredScaled(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color, UINT32 Scale) {

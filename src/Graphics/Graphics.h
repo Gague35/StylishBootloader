@@ -49,7 +49,9 @@ UINT32 CalculateOpacity(UINT32 Distance, UINT32 MaxDist);
 // RENDERER
 // ============================================================================
 
+// Glow effects
 VOID DrawGlow(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, UINT32 Color, UINT32 Intensity);
+VOID DrawGlowLayers(UINT32 X, UINT32 Y, UINT32 Width, UINT32 Height, UINT32 Color, UINT32 Intensity, UINT32 LayerCount);  // ← AJOUTER
 VOID DrawRectScaled(UINT32 X, UINT32 Y, UINT32 BaseWidth, UINT32 BaseHeight, UINT32 Scale, UINT32 Color);
 
 // ============================================================================
@@ -58,12 +60,22 @@ VOID DrawRectScaled(UINT32 X, UINT32 Y, UINT32 BaseWidth, UINT32 BaseHeight, UIN
 
 #define RGB(r, g, b) (0xFF000000 | ((r) << 16) | ((g) << 8) | (b))
 
-// Font rendering
+// Font 8x8 (old)
 VOID DrawChar(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color);
 VOID DrawCharScaled(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale);
 VOID DrawString(CHAR16* str, INT32 X, INT32 Y, UINT32 Color);
 VOID DrawStringScaled(CHAR16* str, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale);
 VOID DrawStringCentered(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color);
 VOID DrawStringCenteredScaled(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color, UINT32 Scale);
+
+// Font 16×16 (new)
+VOID DrawChar16(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color);
+VOID DrawString16(CHAR16* str, INT32 X, INT32 Y, UINT32 Color);
+VOID DrawStringCentered16(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color);
+
+// Font 16×16 scaled
+VOID DrawChar16Scaled(CHAR16 ch, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale);
+VOID DrawString16Scaled(CHAR16* str, INT32 X, INT32 Y, UINT32 Color, UINT32 Scale);
+VOID DrawStringCentered16Scaled(CHAR16* str, INT32 CenterX, INT32 Y, UINT32 Color, UINT32 Scale);
 
 #endif

@@ -7,6 +7,7 @@
 #include "../Graphics/Graphics.h"
 #include "../UI/UI.h"
 #include "Platform.h"
+#include "../Boot/OSDetector.h"
 
 // ============================================================================
 // GLOBAL VARIABLES
@@ -66,6 +67,16 @@ EFI_STATUS EFIAPI UefiMain(
         Print(L"Echec framebuffer\n");
         return Status;
     }
+
+    // Detect operating systems
+    Status = ScanForOperatingSystems();
+    if (EFI_ERROR(Status)) {
+        Print(L"[WARN] OS detection failed: %r\n", Status);
+        gBS->Stall(1000000);  // 1 sec pour voir l'erreur
+    }
+    
+    Print(L"Starting menu...\n");
+    gBS->Stall(500000);  // 0.5 sec
     
 
     Print(L"Use left/right arrows to naviagte\n");
@@ -81,6 +92,14 @@ EFI_STATUS EFIAPI UefiMain(
         INPUT_ACTION Action = PollInput();
         
         switch (Action) {
+            case INPUT_UP:
+                MenuMoveUp();
+                break;
+            
+            case INPUT_DOWN:
+                MenuMoveDown();
+                break;
+            
             case INPUT_LEFT:
                 MenuMoveLeft();
                 break;
@@ -90,12 +109,12 @@ EFI_STATUS EFIAPI UefiMain(
                 break;
             
             case INPUT_SELECT:
-                Print(L"Option selectionnee : %u\n", MenuGetSelected());
+                Print(L"Option selected : %u\n", MenuGetSelected());
                 Running = FALSE;
                 break;
             
             case INPUT_ESCAPE:
-                Print(L"Annule\n");
+                Print(L"Cancel\n");
                 Running = FALSE;
                 break;
             
