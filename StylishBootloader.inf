@@ -10,6 +10,7 @@
   src/Boot/OSDetector.c
   src/Core/Entry.c
   src/Core/Platform.c
+  src/Core/Config.c
   src/Graphics/Framebuffer.c
   src/Graphics/Animations.c
   src/Graphics/Renderer.c

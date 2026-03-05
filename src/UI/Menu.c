@@ -143,6 +143,14 @@ UINT32 MenuGetSelected(VOID) {
     return gCarousel.SelectedIndex;
 }
 
+// Set initial selected index
+VOID MenuSetSelected(UINT32 Index) {
+    UINT32 MaxItems = GetMaxItems();
+    if (Index < MaxItems) {
+        gCarousel.SelectedIndex = Index;
+    }
+}
+
 // ============================================================================
 // BUTTON NAVIGATION
 // ============================================================================

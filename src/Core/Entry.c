@@ -8,6 +8,7 @@
 #include "../UI/UI.h"
 #include "Platform.h"
 #include "../Boot/OSDetector.h"
+#include "Config.h"
 
 // ============================================================================
 // GLOBAL VARIABLES
@@ -116,8 +117,26 @@ EFI_STATUS EFIAPI UefiMain(
         gBS->Stall(1000000);  // 1 sec pour voir l'erreur
     }
     
+    // ========================================================================
+    // LOAD CONFIGURATION
+    // ========================================================================
+    
+    UINT32 Timeout = DEFAULT_TIMEOUT;
+    UINT32 LastOS = 0;
+    
+    LoadTimeout(&Timeout);
+    LoadLastOS(&LastOS);
+    
+    // Restore last selected OS (if valid)
+    if (LastOS < gOSCount + 2) {  // +2 for Settings and Shutdown
+        MenuSetSelected(LastOS);  // ← Définir l'index du carousel
+        Print(L"[CONFIG] Restored last OS: %d, Timeout: %d sec\n", LastOS, Timeout);
+    } else {
+        Print(L"[CONFIG] Invalid LastOS (%d), using default. Timeout: %d sec\n", LastOS, Timeout);
+    }
+    
     Print(L"Starting menu...\n");
-    gBS->Stall(500000);  // 0.5 sec
+    gBS->Stall(1000000);  // 1 sec
     
 
     Print(L"Use left/right arrows to naviagte\n");
@@ -128,9 +147,18 @@ EFI_STATUS EFIAPI UefiMain(
     // ========================================================================
     
     BOOLEAN Running = TRUE;
+    UINT32 TimerActive = (Timeout > 0) ? 1 : 0;  // Timer enabled?
+    UINT32 TimerFrames = Timeout * 60;  // Convert seconds to frames (60 FPS)
+    UINT32 CurrentFrame = 0;
 
     while (Running) {
         INPUT_ACTION Action = PollInput();
+        
+        // Cancel timer on any input
+        if (Action != INPUT_NONE && TimerActive) {
+            TimerActive = 0;
+            Print(L"[TIMER] Cancelled by user input\n");
+        }
         
         switch (Action) {
             case INPUT_UP:
@@ -150,6 +178,9 @@ EFI_STATUS EFIAPI UefiMain(
                 break;
             
             case INPUT_SELECT:
+                // Save selected OS before booting
+                SaveLastOS(MenuGetSelected());
+                
                 Print(L"Option selected : %u\n", MenuGetSelected());
                 Running = FALSE;
                 break;
@@ -165,6 +196,26 @@ EFI_STATUS EFIAPI UefiMain(
 
         MenuUpdate();
 
+
+        // ----------------------------------------------------------------
+        // AUTO-BOOT TIMER
+        // ----------------------------------------------------------------
+        
+        if (TimerActive) {
+            CurrentFrame++;
+            
+            if (CurrentFrame >= TimerFrames) {
+                // Timer expired, boot selected OS
+                Print(L"[TIMER] Auto-booting OS %d...\n", MenuGetSelected());
+                
+                // Save selected OS
+                SaveLastOS(MenuGetSelected());
+                
+                Running = FALSE;
+                break;
+            }
+        }
+
         // ----------------------------------------------------------------
         // SIMPLE RENDER
         // ----------------------------------------------------------------
@@ -175,7 +226,29 @@ EFI_STATUS EFIAPI UefiMain(
         // Draw carousel
         RenderCarousel(gGraphics.Width, gGraphics.Height);
         
-        // Swap buffers
+        // ----------------------------------------------------------------
+        // DISPLAY TIMER
+        // ----------------------------------------------------------------
+        
+        if (TimerActive) {
+            UINT32 SecondsLeft = (TimerFrames - CurrentFrame) / 60 + 1;  // ← Cette ligne DOIT être là !
+            
+            // Build countdown number (1-2 digits)
+            CHAR16 CountdownText[3] = {L'\0', L'\0', L'\0'};
+            
+            if (SecondsLeft >= 10) {
+                // Two digits: "10", "11", etc.
+                CountdownText[0] = L'0' + (SecondsLeft / 10);   // Dizaine
+                CountdownText[1] = L'0' + (SecondsLeft % 10);   // Unité
+            } else {
+                // One digit: "9", "8", etc.
+                CountdownText[0] = L'0' + SecondsLeft;
+            }
+            
+            DrawStringCenteredScaled(L"Auto-boot in", gGraphics.Width / 2, 50, RGB(200, 200, 200), 1);
+            DrawStringCenteredScaled(CountdownText, gGraphics.Width / 2, 80, RGB(255, 100, 100), 3);
+            DrawStringCenteredScaled(L"seconds", gGraphics.Width / 2, 130, RGB(200, 200, 200), 1);
+        }
         SwapBuffers();
         
         // 60 FPS

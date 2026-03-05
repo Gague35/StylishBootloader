@@ -9,6 +9,7 @@ VOID MenuMoveDown(VOID);
 VOID MenuMoveLeft(VOID);
 VOID MenuMoveRight(VOID);
 UINT32 MenuGetSelected(VOID);
+VOID MenuSetSelected(UINT32 Index); 
 VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight);
 VOID MenuUpdate(VOID);
 
