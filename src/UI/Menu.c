@@ -15,8 +15,7 @@ VOID MenuButtonRight(VOID);
 // CAROUSEL STATE
 // ============================================================================
 
-#define SPACING 280
-#define ANIM_DURATION 20 
+#define ANIM_DURATION 20
 
 typedef struct {
     UINT32  SelectedIndex;
@@ -27,6 +26,7 @@ typedef struct {
 } CAROUSEL_STATE;
 
 CAROUSEL_STATE gCarousel = {0, 0, 0, FALSE, 0};
+UINT32 gCurrentSpacing = 280;
 
 // Bottom button states
 typedef enum {
@@ -77,11 +77,12 @@ VOID MenuMoveLeft(VOID) {
             gCarousel.SelectedIndex--;
         }
         
-        gCarousel.AnimationOffset = gCarousel.AnimationOffset + SPACING;
-        
+        extern UINT32 gCurrentSpacing;
+        gCarousel.AnimationOffset = gCarousel.AnimationOffset + gCurrentSpacing;
+
         // If the offset exceeds the limit, it is limited.
-        if (gCarousel.AnimationOffset > SPACING) {
-            gCarousel.AnimationOffset = SPACING;
+        if (gCarousel.AnimationOffset > gCurrentSpacing) {
+            gCarousel.AnimationOffset = gCurrentSpacing;
         }
         
         gCarousel.AnimationDirection = -1;
@@ -95,7 +96,7 @@ VOID MenuMoveLeft(VOID) {
             gCarousel.SelectedIndex--;
         }
         
-        gCarousel.AnimationOffset = SPACING;
+        gCarousel.AnimationOffset = gCurrentSpacing;
         gCarousel.AnimationDirection = -1;
         gCarousel.AnimationProgress = 0;
         gCarousel.IsAnimating = TRUE;
@@ -109,25 +110,29 @@ VOID MenuMoveRight(VOID) {
         MenuButtonRight();
         return;
     }
-
+    
     UINT32 MaxItems = GetMaxItems();
-
+    
     if (gCarousel.IsAnimating) {
-
+        // Change target
         gCarousel.SelectedIndex = (gCarousel.SelectedIndex + 1) % MaxItems;
-        gCarousel.AnimationOffset = gCarousel.AnimationOffset - SPACING;
         
-        if (gCarousel.AnimationOffset < -SPACING) {
-            gCarousel.AnimationOffset = -SPACING;
+        // Adjust offset from current position
+        gCarousel.AnimationOffset = gCarousel.AnimationOffset - gCurrentSpacing;
+        
+        if (gCarousel.AnimationOffset < -gCurrentSpacing) {
+            gCarousel.AnimationOffset = -gCurrentSpacing;
         }
         
         gCarousel.AnimationDirection = 1;
         gCarousel.AnimationProgress = 0;
+        // IsAnimating stays TRUE
         
     } else {
+        // No animation in progress, start new one
         gCarousel.SelectedIndex = (gCarousel.SelectedIndex + 1) % MaxItems;
         
-        gCarousel.AnimationOffset = -SPACING;
+        gCarousel.AnimationOffset = -gCurrentSpacing;
         gCarousel.AnimationDirection = 1;
         gCarousel.AnimationProgress = 0;
         gCarousel.IsAnimating = TRUE;
@@ -182,21 +187,18 @@ VOID MenuUpdate(VOID) {
         
         if (gCarousel.AnimationDirection > 0) {
             gCarousel.AnimationOffset = EaseInOutUINT32(
-                SPACING, 0,
+                gCurrentSpacing,
+                0,
                 gCarousel.AnimationProgress,
                 ANIM_DURATION
             );
         } else {
             gCarousel.AnimationOffset = -EaseInOutUINT32(
-                SPACING, 0,
+                gCurrentSpacing,
+                0,
                 gCarousel.AnimationProgress,
                 ANIM_DURATION
             );
-        }
-        
-        if (gCarousel.AnimationProgress >= ANIM_DURATION) {
-            gCarousel.AnimationOffset = 0;
-            gCarousel.IsAnimating = FALSE;
         }
     }
     
@@ -212,10 +214,11 @@ VOID MenuUpdate(VOID) {
 // ============================================================================
 
 VOID RenderBottomButtons(UINT32 ScreenWidth, UINT32 ScreenHeight) {
-    UINT32 ButtonSize = 70;
-    UINT32 ButtonSpacing = 100;
+    // Scale button sizes
+    UINT32 ButtonSize = 80;
+    UINT32 ButtonSpacing = 120;
     UINT32 CenterX = ScreenWidth / 2;
-    UINT32 ButtonY = ScreenHeight - 200;
+    UINT32 ButtonY = ScreenHeight - 450;
     
     // Get pulse timer from carousel (shared)
     // IMPORTANT: Use the SAME timer as carousel for synchronization
@@ -229,10 +232,11 @@ VOID RenderBottomButtons(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         
         // ======== GLOW (selected only) ========
         if (IsSelected) {
-            // Animation scale: 0% → 100% over 12 frames, then stays at 100%
+        // Animation scale: 80% → 100% over 6 frames (rapide + immédiatement visible)
             UINT32 AnimScale = 100;  // Default to 100%
-            if (gMenuState.ButtonAnimTimer < 12) {
-                AnimScale = (gMenuState.ButtonAnimTimer * 100) / 12;
+            if (gMenuState.ButtonAnimTimer < 6) {
+                // Part de 80% et va jusqu'à 100%
+                AnimScale = 80 + (gMenuState.ButtonAnimTimer * 20) / 6;
             }
             
             // Pulse amount (synchronized with carousel)
@@ -261,26 +265,27 @@ VOID RenderBottomButtons(UINT32 ScreenWidth, UINT32 ScreenHeight) {
         
         switch (i) {
             case BTN_SETTINGS:
-                Icon = L"S";
+                Icon = L"@";  // Gear
                 Label = L"Settings";
-                break;
+            break;
             case BTN_BIOS:
-                Icon = L"B";
+                Icon = L"$";  // Heart/Chip
                 Label = L"BIOS";
-                break;
+            break;
             case BTN_SHUTDOWN:
-                Icon = L"X";
+                Icon = L"#";  // Power
                 Label = L"Shutdown";
-                break;
-        }
-        
+            break;
+}
+      
         UINT32 IconColor = IsSelected ? RGB(255, 255, 255) : RGB(120, 120, 120);
-        DrawStringCenteredScaled(Icon, ButtonX, ButtonY - 12, IconColor, 3);
+        
+        DrawStringCenteredScaled(Icon, ButtonX, ButtonY - 16, IconColor, 4);
         
         // ======== LABEL (if selected) ========
         if (IsSelected) {
-            DrawStringCenteredScaled(Label, ButtonX, ButtonY + ButtonSize/2 + 20, 
-                        RGB(255, 255, 255), 1);
+            DrawStringCenteredScaled(Label, ButtonX, ButtonY + ButtonSize/2 + 25, 
+                                    RGB(255, 255, 255), 2);
         }
     }
 }
@@ -293,8 +298,10 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
     UINT32 CentreX = ScreenWidth / 2;
     UINT32 CentreY = ScreenHeight / 2;
 
-    UINT32 BaseWidth  = 200;
-    UINT32 BaseHeight = 120;
+    UINT32 BaseWidth  = 300;
+    UINT32 BaseHeight = 180;
+    UINT32 Spacing    = 420;
+    gCurrentSpacing = Spacing;
 
     gPulseTimer = (gPulseTimer + 1) % 120;
     
@@ -309,7 +316,7 @@ VOID RenderCarousel(UINT32 ScreenWidth, UINT32 ScreenHeight) {
     // BOUCLE : Dessiner tous les items
     for (UINT32 i = 0; i < MaxItems; i++) { 
         INT32 RelativeIndex = (INT32)i - (INT32)gCarousel.SelectedIndex;
-        INT32 BaseX = CentreX + (RelativeIndex * SPACING);
+        INT32 BaseX = CentreX + (RelativeIndex * Spacing);
         INT32 FinalX = BaseX + gCarousel.AnimationOffset;
 
         if (FinalX < -300 || FinalX > (INT32)ScreenWidth + 300) continue;

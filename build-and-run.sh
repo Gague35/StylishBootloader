@@ -40,7 +40,11 @@ echo "🚀 QEMU Launch..."
 qemu-system-x86_64 \
     -bios /usr/share/edk2/x64/OVMF.4m.fd \
     -drive format=raw,file=fat:rw:image \
-    -m 512M \
-    -vga std
+    -m 2048M \
+    -vga std \
+    -display gtk,zoom-to-fit=on \
+    -device VGA,vgamem_mb=256 \
+    -smp 2 \
+    -enable-kvm
 
 echo "✅ DONE !"

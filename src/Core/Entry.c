@@ -62,6 +62,47 @@ EFI_STATUS EFIAPI UefiMain(
         return Status;
     }
     
+    // ======== FORCER LA MEILLEURE RÉSOLUTION 16:9 ========
+    UINT32 BestMode = 0;
+    UINT32 BestWidth = gGraphics.Width;
+    UINT32 BestHeight = gGraphics.Height;
+    
+    for (UINT32 i = 0; i < gGraphics.Gop->Mode->MaxMode; i++) {
+        EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info;
+        UINTN SizeOfInfo;
+        
+        Status = gGraphics.Gop->QueryMode(gGraphics.Gop, i, &SizeOfInfo, &Info);
+        if (!EFI_ERROR(Status)) {
+            UINT32 W = Info->HorizontalResolution;
+            UINT32 H = Info->VerticalResolution;
+            
+            // Check 16:9 ratio
+            if ((W * 9) == (H * 16)) {
+                if (W > BestWidth) {
+                    BestMode = i;
+                    BestWidth = W;
+                    BestHeight = H;
+                }
+            }
+        }
+    }
+    
+    // Apply best mode if found
+    if (BestWidth > gGraphics.Width) {
+        Print(L"[GOP] Switching to %dx%d...\n", BestWidth, BestHeight);
+        Status = gGraphics.Gop->SetMode(gGraphics.Gop, BestMode);
+        if (!EFI_ERROR(Status)) {
+            gGraphics.Width = BestWidth;
+            gGraphics.Height = BestHeight;
+            gGraphics.Framebuffer = (UINT32 *)gGraphics.Gop->Mode->FrameBufferBase;
+            Print(L"[GOP] Success! Resolution: %dx%d\n", gGraphics.Width, gGraphics.Height);
+        }
+    } else {
+        Print(L"[GOP] Using default: %dx%d\n", gGraphics.Width, gGraphics.Height);
+    }
+    
+    gBS->Stall(1000000);  // 1 sec
+    
     Status = InitializeFramebuffer(gGraphics.Width, gGraphics.Height, gGraphics.Framebuffer);
     if (EFI_ERROR(Status)) {
         Print(L"Echec framebuffer\n");
